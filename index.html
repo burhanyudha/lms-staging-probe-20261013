@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>LMS staging probe</title>
+<button id="run">Run probe</button>
+<pre id="out">idle</pre>
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbzHRPIbNG68HXWNx6JffB6X2Agg-6qMiKAkMPZ6iyxF0fhuba9Vt4DK14jATJbzNfbQgQ/exec';
+const ENVIRONMENT = 'staging';
+const STORAGE_PREFIX = 'lms-staging-probe:';
+async function runProbe() {
+  const nonce = 'UJI_' + Math.random().toString(36).slice(2, 10).toUpperCase();
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    credentials: 'omit',
+    body: JSON.stringify({ action: 'probe', nonce })
+  });
+  const json = await res.json();
+  if (json.status !== 'success' || json.data.nonce !== nonce) throw new Error(JSON.stringify(json));
+  document.getElementById('out').textContent = JSON.stringify({ ENVIRONMENT, STORAGE_PREFIX, json }, null, 2);
+}
+document.getElementById('run').onclick = () => runProbe().catch(e => document.getElementById('out').textContent = e.message);
+</script>
